@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: bingo-de-yolande
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: BINGO_ACCESS_CODE
+        value: yolandemorue
