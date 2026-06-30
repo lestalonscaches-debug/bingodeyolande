@@ -21,35 +21,15 @@ function getAudioCtx() {
   return _audioCtx;
 }
 
+// Son joué à chaque numéro annoncé : fichier audio fourni (public/sounds/numero.mp3)
 function playTrumpetCall() {
   try {
-    const ctx = getAudioCtx();
-    const now = ctx.currentTime;
-    const playBrassNote = (freq, startTime, duration, peakGain) => {
-      const osc = ctx.createOscillator();
-      const osc2 = ctx.createOscillator();
-      const filter = ctx.createBiquadFilter();
-      const gain = ctx.createGain();
-      osc.type = "sawtooth";
-      osc2.type = "square";
-      osc.frequency.setValueAtTime(freq, startTime);
-      osc2.frequency.setValueAtTime(freq, startTime);
-      filter.type = "lowpass";
-      filter.frequency.setValueAtTime(2400, startTime);
-      gain.gain.setValueAtTime(0.0001, startTime);
-      gain.gain.exponentialRampToValueAtTime(peakGain, startTime + 0.015);
-      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
-      osc.connect(filter);
-      osc2.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(startTime);
-      osc2.start(startTime);
-      osc.stop(startTime + duration + 0.02);
-      osc2.stop(startTime + duration + 0.02);
-    };
-    playBrassNote(523.25, now, 0.16, 0.2);
-    playBrassNote(659.25, now + 0.14, 0.26, 0.24);
+    // Un nouvel objet Audio à chaque appel permet de superposer le son
+    // si l'animateur clique vite sur plusieurs numéros d'affilée.
+    const audio = new Audio("sounds/numero.mp3");
+    audio.play().catch(() => {
+      // lecture bloquée tant qu'aucune interaction tactile n'a eu lieu sur la page ; ignoré silencieusement
+    });
   } catch (e) {
     // ignore
   }
@@ -187,7 +167,7 @@ function tryUnlock() {
     document.getElementById("code-error").style.display = "none";
     document.getElementById("code-input").value = "";
     showScreen("controller");
-    renderControllerTitle();
+    renderController();
   } else {
     document.getElementById("code-error").style.display = "block";
     document.getElementById("code-input").value = "";
@@ -431,9 +411,40 @@ function onStateUpdate(prevDrawnLen) {
   document.getElementById("name-screen-title").textContent = state.title.toUpperCase();
 }
 
+// ---------- Photos de célébration (détection automatique des fichiers présents) ----------
+// On essaie une liste de noms possibles ; ceux qui n'existent pas sont simplement ignorés.
+const CELEBRATION_PHOTO_CANDIDATES = Array.from(
+  { length: 10 },
+  (_, i) => `images/celebration-${i + 1}.jpg`
+);
+let availableCelebrationPhotos = [];
+(function detectCelebrationPhotos() {
+  let remaining = CELEBRATION_PHOTO_CANDIDATES.length;
+  CELEBRATION_PHOTO_CANDIDATES.forEach((src) => {
+    const img = new Image();
+    img.onload = () => {
+      availableCelebrationPhotos.push(src);
+      remaining--;
+    };
+    img.onerror = () => {
+      remaining--;
+    };
+    img.src = src;
+  });
+})();
+
 function triggerCelebration(name) {
   playBingoSaxJingle();
   const overlay = document.getElementById("celebration-overlay");
+  const photo = document.getElementById("celebration-photo");
+  if (availableCelebrationPhotos.length > 0) {
+    const pick =
+      availableCelebrationPhotos[Math.floor(Math.random() * availableCelebrationPhotos.length)];
+    photo.src = pick;
+    photo.classList.remove("hidden");
+  } else {
+    photo.classList.add("hidden");
+  }
   document.getElementById("celebration-name").textContent = `🎉 Bravo ${name} ! 🎉`;
   spawnConfetti(overlay);
   overlay.classList.remove("hidden");
