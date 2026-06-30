@@ -202,6 +202,19 @@ function renderPublic() {
     document.getElementById("public-ball-number").textContent = lastBall;
   }
 
+  // Bannière persistante : reste affichée tant que la partie en cours a un ou plusieurs gagnants
+  const winners = state.claims.filter(
+    (c) => c.status === "validated" && c.generation === state.generation
+  );
+  const banner = document.getElementById("winner-banner");
+  if (winners.length > 0) {
+    const names = winners.map((w) => w.name).join(", ");
+    banner.textContent = `🎉 Bravo ${names}, tu as gagné !`;
+    banner.classList.remove("hidden");
+  } else {
+    banner.classList.add("hidden");
+  }
+
   buildGrid(document.getElementById("public-grid"), drawnSet, lastBall, false);
 
   const count = state.drawn.length;
@@ -219,7 +232,7 @@ function renderPublicBingoZone() {
   [btn, pendingCard, validatedCard, rejectedCard].forEach((el) => el.classList.add("hidden"));
 
   if (myClaimStatus === "validated") {
-    validatedCard.textContent = `🎉 Bingo validé ! Bravo ${playerName} !`;
+    validatedCard.textContent = `🎉 Bingo validé ! Bravo ${playerName}, tu as gagné !`;
     validatedCard.classList.remove("hidden");
   } else if (myClaimStatus === "rejected") {
     rejectedCard.classList.remove("hidden");
@@ -391,7 +404,7 @@ function triggerCelebration(name) {
   } else {
     photo.classList.add("hidden");
   }
-  document.getElementById("celebration-name").textContent = `🎉 Bravo ${name} ! 🎉`;
+  document.getElementById("celebration-name").textContent = `🎉 Bravo ${name}, tu as gagné ! 🎉`;
   spawnConfetti(overlay);
   overlay.classList.remove("hidden");
   setTimeout(() => {
