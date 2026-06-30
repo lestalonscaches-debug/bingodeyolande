@@ -27,11 +27,14 @@ function playTrumpetCall() {
     // Un nouvel objet Audio à chaque appel permet de superposer le son
     // si l'animateur clique vite sur plusieurs numéros d'affilée.
     const audio = new Audio("sounds/numero.mp3");
-    audio.play().catch(() => {
-      // lecture bloquée tant qu'aucune interaction tactile n'a eu lieu sur la page ; ignoré silencieusement
+    audio.play().catch((err) => {
+      console.warn(
+        "Son non joué (sounds/numero.mp3) — soit le fichier est introuvable à cet emplacement, soit aucune interaction tactile n'a encore eu lieu sur la page :",
+        err
+      );
     });
   } catch (e) {
-    // ignore
+    console.warn("Erreur lors de la lecture du son sounds/numero.mp3 :", e);
   }
 }
 
