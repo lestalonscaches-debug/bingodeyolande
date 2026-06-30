@@ -27,7 +27,10 @@
 
   .screen {
     min-height: 100vh;
-    background: radial-gradient(ellipse at top, #2A1F45 0%, var(--ink) 60%);
+    background:
+      linear-gradient(rgba(27,20,48,0.78), rgba(27,20,48,0.88)),
+      url('images/fond.jpg') center center / cover no-repeat,
+      radial-gradient(ellipse at top, #2A1F45 0%, var(--ink) 60%);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -40,9 +43,35 @@
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: radial-gradient(ellipse at top, #2A1F45 0%, var(--ink) 60%);
+    background:
+      linear-gradient(rgba(27,20,48,0.78), rgba(27,20,48,0.88)),
+      url('images/fond.jpg') center center / cover no-repeat,
+      radial-gradient(ellipse at top, #2A1F45 0%, var(--ink) 60%);
   }
   .hidden { display: none !important; }
+
+  .header-photos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+  .header-photos img {
+    height: 56px;
+    width: 56px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    background: rgba(247,239,224,0.06);
+  }
+  .header-photos img.logo {
+    border-radius: 10px;
+    object-fit: contain;
+    background: var(--cream);
+    padding: 4px;
+  }
+  .header-photos img.missing { display: none; }
 
   .title-display {
     font-family: 'Archivo Black', sans-serif;
@@ -284,20 +313,37 @@
     font-size: clamp(48px, 16vw, 96px);
   }
   .celebration-sub { font-size: clamp(18px, 4vw, 26px); color: var(--cream); font-weight: 700; }
+  .celebration-photo {
+    display: block;
+    width: min(60vw, 280px);
+    height: min(60vw, 280px);
+    object-fit: cover;
+    border-radius: 18px;
+    border: 4px solid var(--gold);
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  }
+  .celebration-photo.hidden { display: none; }
 </style>
 </head>
 <body>
 
 <!-- ===================== ÉCRAN DE CHOIX ===================== -->
 <div id="choose-screen" class="center-screen">
+  <div class="header-photos">
+    <img src="images/yolande.jpg" alt="" onerror="this.classList.add('missing')" />
+    <img src="images/logo.png" class="logo" alt="" onerror="this.classList.add('missing')" />
+  </div>
   <div class="title-display" style="font-size:26px; margin-bottom:8px;">BINGO</div>
   <div style="font-size:14px; opacity:0.6; margin-bottom:36px; text-align:center;">Quelle vue voulez-vous ouvrir ?</div>
-  <div style="display:flex; flex-direction:column; gap:14px; width:100%; max-width:320px;">
-    <button class="primary-btn" id="btn-show-code">🎙️ Je suis l'animateur</button>
-    <button class="secondary-btn" id="btn-go-public">📱 Voir le suivi en direct</button>
+  <div style="width:100%; max-width:320px;">
+    <button class="primary-btn" id="btn-go-public" style="width:100%; font-size:19px; padding:24px 0;">📱 Joueureuses</button>
   </div>
-  <div style="font-size:12px; opacity:0.4; margin-top:28px; text-align:center; max-width:300px;">
-    Le QR code à scanner ouvre directement la vue « suivi en direct ».
+  <button id="btn-show-code" style="background:transparent; border:none; color:var(--cream); opacity:0.55; font-size:13px; text-decoration:underline; margin-top:22px; padding:8px;">
+    🎙️ Animateur
+  </button>
+  <div style="font-size:12px; opacity:0.4; margin-top:24px; text-align:center; max-width:300px;">
+    Le QR code à scanner ouvre directement la vue « Joueureuses ».
   </div>
 </div>
 
@@ -321,6 +367,10 @@
 <!-- ===================== ÉCRAN PUBLIC ===================== -->
 <div id="public-screen" class="screen hidden">
   <button class="back-btn" id="public-back-btn">← Changer de vue</button>
+  <div class="header-photos">
+    <img src="images/yolande.jpg" alt="" onerror="this.classList.add('missing')" />
+    <img src="images/logo.png" class="logo" alt="" onerror="this.classList.add('missing')" />
+  </div>
   <div class="title-display" id="public-title" style="font-size:clamp(20px,5vw,32px);"></div>
   <div class="subtitle">Suivi en direct</div>
   <div style="font-size:12px; opacity:0.45; margin: 6px 0 16px;">
@@ -359,6 +409,10 @@
 <div id="controller-screen" class="screen hidden">
   <button class="back-btn" id="controller-back-btn">← Changer de vue</button>
   <div style="width:100%; max-width:480px;">
+    <div class="header-photos">
+      <img src="images/yolande.jpg" alt="" onerror="this.classList.add('missing')" />
+      <img src="images/logo.png" class="logo" alt="" onerror="this.classList.add('missing')" />
+    </div>
     <input class="title-display" id="title-input" style="font-size:20px; width:100%; background:transparent; border:none; text-align:center; outline:none; margin-bottom:4px;" />
     <div style="font-size:12px; opacity:0.5; text-align:center; margin-bottom:24px; letter-spacing:0.1em; text-transform:uppercase;">Panneau animateur</div>
 
@@ -404,6 +458,7 @@
 <!-- ===================== OVERLAY CÉLÉBRATION ===================== -->
 <div id="celebration-overlay" class="hidden">
   <div class="celebration-banner">
+    <img id="celebration-photo" class="celebration-photo hidden" alt="" />
     <div class="celebration-title">BINGO !</div>
     <div class="celebration-sub" id="celebration-name"></div>
   </div>
