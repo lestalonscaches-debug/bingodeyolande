@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Bingo de Yolande</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;600;700&display=swap');
+
+  :root {
+    --accent: #FF4D6D;
+    --gold: #FFC857;
+    --ink: #1B1430;
+    --cream: #F7EFE0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--ink); }
+  body {
+    font-family: 'Archivo', system-ui, sans-serif;
+    color: var(--cream);
+    min-height: 100vh;
+  }
+  button { font-family: inherit; cursor: pointer; }
+  button:disabled { cursor: not-allowed; opacity: 0.5; }
+  input { font-family: inherit; }
+
+  .screen {
+    min-height: 100vh;
+    background:
+      linear-gradient(rgba(27,20,48,0.78), rgba(27,20,48,0.88)),
+      url('images/fond.jpg') center center / cover no-repeat,
+      radial-gradient(ellipse at top, #2A1F45 0%, var(--ink) 60%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+  .center-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background:
+      linear-gradient(rgba(27,20,48,0.78), rgba(27,20,48,0.88)),
+      url('images/fond.jpg') center center / cover no-repeat,
+      radial-gradient(ellipse at top, #2A1F45 0%, var(--ink) 60%);
+  }
+  .hidden { display: none !important; }
+
+  .header-photos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+  .header-photos img {
+    height: 56px;
+    width: 56px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    background: rgba(247,239,224,0.06);
+  }
+  .header-photos img.logo {
+    border-radius: 10px;
+    object-fit: contain;
+    background: var(--cream);
+    padding: 4px;
+  }
+  .header-photos img.missing { display: none; }
+
+  .title-display {
+    font-family: 'Archivo Black', sans-serif;
+    color: var(--gold);
+    letter-spacing: 0.06em;
+    text-align: center;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    opacity: 0.55;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .ball {
+    border-radius: 50%;
+    border: 5px solid var(--cream);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(247,239,224,0.06);
+  }
+  .ball.filled {
+    background: radial-gradient(circle at 32% 28%, #FF8098, var(--accent) 65%);
+  }
+  .ball .letter {
+    font-family: 'Archivo Black', sans-serif;
+    color: var(--ink);
+    opacity: 0.85;
+  }
+  .ball .number {
+    font-family: 'Archivo Black', sans-serif;
+    color: var(--ink);
+    line-height: 0.95;
+  }
+  .ball .placeholder {
+    font-size: 13px;
+    opacity: 0.4;
+    text-align: center;
+    padding: 16px;
+  }
+
+  .bingo-grid-wrap {
+    width: 100%;
+    max-width: 480px;
+    background: rgba(247,239,224,0.04);
+    border: 1px solid rgba(247,239,224,0.1);
+    border-radius: 14px;
+    padding: 10px;
+  }
+  .bingo-letters, .bingo-rows {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+  }
+  .bingo-letters { margin-bottom: 6px; }
+  .bingo-letters span {
+    text-align: center;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 16px;
+    color: var(--gold);
+  }
+  .cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    background: rgba(247,239,224,0.05);
+    color: rgba(247,239,224,0.35);
+    border: 1px solid rgba(247,239,224,0.06);
+    transition: all 0.25s ease;
+  }
+  .cell.drawn {
+    background: rgba(255,200,87,0.18);
+    color: var(--gold);
+    border: 1px solid rgba(255,200,87,0.4);
+  }
+  .cell.last {
+    background: var(--accent);
+    color: var(--ink);
+    border: 1px solid var(--cream);
+  }
+  .cell.clickable {
+    cursor: pointer;
+    color: var(--cream);
+    border: 1px solid rgba(247,239,224,0.12);
+  }
+  .cell.clickable:disabled { cursor: default; }
+
+  .bingo-btn {
+    width: 100%;
+    background: var(--accent);
+    color: var(--ink);
+    border: none;
+    border-radius: 16px;
+    padding: 20px 0;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    font-family: 'Archivo Black', sans-serif;
+    animation: glow 1.8s ease-in-out infinite;
+  }
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,200,87,0.5); }
+    50% { box-shadow: 0 0 0 14px rgba(255,200,87,0); }
+  }
+
+  .status-card {
+    width: 100%;
+    max-width: 420px;
+    border-radius: 16px;
+    padding: 16px 0;
+    text-align: center;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .status-card.pending { background: rgba(255,77,109,0.12); border: 1px solid var(--accent); color: var(--accent); }
+  .status-card.validated { background: rgba(255,200,87,0.15); border: 2px solid var(--gold); color: var(--gold); }
+  .status-card.rejected { background: rgba(247,239,224,0.06); border: 1px solid rgba(247,239,224,0.2); opacity: 0.7; font-size: 14px; font-weight: 400; }
+
+  .ghost-btn {
+    background: rgba(247,239,224,0.08);
+    color: var(--cream);
+    border: 1px solid rgba(247,239,224,0.2);
+    border-radius: 12px;
+    padding: 14px 0;
+    font-size: 14px;
+  }
+  .primary-btn {
+    background: var(--accent);
+    color: var(--ink);
+    border: none;
+    border-radius: 14px;
+    padding: 18px 0;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .secondary-btn {
+    background: rgba(247,239,224,0.08);
+    color: var(--cream);
+    border: 1px solid rgba(247,239,224,0.25);
+    border-radius: 14px;
+    padding: 18px 0;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .name-input, .code-input {
+    width: 100%;
+    max-width: 280px;
+    background: rgba(247,239,224,0.08);
+    border: 1px solid rgba(247,239,224,0.25);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: var(--cream);
+    font-size: 16px;
+    outline: none;
+    text-align: center;
+  }
+
+  .claim-card {
+    width: 100%;
+    max-width: 480px;
+    background: rgba(255,200,87,0.1);
+    border: 2px solid var(--gold);
+    border-radius: 16px;
+    padding: 16px;
+  }
+
+  .back-btn {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: rgba(0,0,0,0.35);
+    color: var(--cream);
+    border: 1px solid rgba(247,239,224,0.25);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+    z-index: 100;
+  }
+
+  .qr-box {
+    background: var(--cream);
+    border-radius: 16px;
+    padding: 16px;
+    display: inline-block;
+  }
+
+  /* Animations de tirage / célébration */
+  @keyframes dropIn {
+    0% { transform: scale(0.4) rotate(-8deg); opacity: 0; }
+    60% { transform: scale(1.08) rotate(2deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  @keyframes ringPulse {
+    0% { box-shadow: 0 0 0 0 rgba(255,77,109,0.55); }
+    100% { box-shadow: 0 0 0 24px rgba(255,77,109,0); }
+  }
+  .ball-pulse { animation: dropIn 0.5s cubic-bezier(.2,1.4,.4,1); }
+  .ring-pulse { animation: ringPulse 0.9s ease-out; }
+
+  #celebration-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(27,20,48,0.92);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  @keyframes celebrationPop {
+    0% { transform: scale(0.6); opacity: 0; }
+    15% { transform: scale(1.05); opacity: 1; }
+    25% { transform: scale(1); opacity: 1; }
+    85% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1); opacity: 0; }
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(360deg); opacity: 0.9; }
+  }
+  .confetti { position: absolute; top: 0; border-radius: 2px; z-index: 3; }
+  .celebration-banner {
+    animation: celebrationPop 18.5s ease-in-out forwards;
+    animation-delay: 0.4s;
+    animation-fill-mode: backwards;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+  }
+  .rainbow-svg {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    z-index: 1;
+    transform: translateY(100%);
+    animation: rainbowRise 1.1s cubic-bezier(.22,1.1,.4,1) forwards;
+    animation-delay: 0.1s;
+  }
+  @keyframes rainbowRise {
+    0% { transform: translateY(100%); opacity: 0; }
+    60% { opacity: 1; }
+    100% { transform: translateY(0%); opacity: 1; }
+  }
+  .celebration-title {
+    font-family: 'Archivo Black', sans-serif;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 16px;
+    text-shadow: 0 4px 24px rgba(255,200,87,0.4);
+    font-size: clamp(48px, 16vw, 96px);
+  }
+  .celebration-sub { font-size: clamp(18px, 4vw, 26px); color: var(--cream); font-weight: 700; }
+  .celebration-photo {
+    display: block;
+    width: min(60vw, 280px);
+    height: min(60vw, 280px);
+    object-fit: cover;
+    border-radius: 18px;
+    border: 4px solid var(--gold);
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  }
+  .celebration-photo.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ===================== ÉCRAN DE CHOIX ===================== -->
+<div id="choose-screen" class="center-screen">
+  <div class="header-photos">
+    <img src="images/yolande.jpg" alt="" onerror="this.classList.add('missing')" />
+    <img src="images/logo.png" class="logo" alt="" onerror="this.classList.add('missing')" />
+  </div>
+  <div class="title-display" style="font-size:26px; margin-bottom:8px;">BINGO</div>
+  <div style="font-size:14px; opacity:0.6; margin-bottom:36px; text-align:center;">Quelle vue voulez-vous ouvrir ?</div>
+  <div style="width:100%; max-width:320px;">
+    <button class="primary-btn" id="btn-go-public" style="width:100%; font-size:19px; padding:24px 0;">📱 Joueureuses</button>
+  </div>
+  <button id="btn-show-code" style="background:transparent; border:none; color:var(--cream); opacity:0.55; font-size:13px; text-decoration:underline; margin-top:22px; padding:8px;">
+    🎙️ Animateur
+  </button>
+  <div style="font-size:12px; opacity:0.4; margin-top:24px; text-align:center; max-width:300px;">
+    Le QR code à scanner ouvre directement la vue « Joueureuses ».
+  </div>
+</div>
+
+<!-- ===================== ÉCRAN CODE D'ACCÈS ===================== -->
+<div id="code-screen" class="center-screen hidden">
+  <div class="title-display" style="font-size:18px; margin-bottom:18px;">Accès animateur</div>
+  <input class="code-input" id="code-input" type="password" placeholder="Code d'accès" maxlength="40" />
+  <div id="code-error" style="color: var(--accent); font-size:13px; margin-top:14px; display:none;">Code incorrect, réessayez.</div>
+  <button class="primary-btn" id="btn-unlock" style="margin-top:14px; padding:14px 32px; width:auto;">Entrer</button>
+  <button id="btn-code-back" style="background:transparent; color:var(--cream); opacity:0.6; border:none; font-size:13px; text-decoration:underline; margin-top:10px;">Retour</button>
+</div>
+
+<!-- ===================== ÉCRAN SAISIE NOM (public) ===================== -->
+<div id="name-screen" class="center-screen hidden">
+  <div class="title-display" id="name-screen-title" style="font-size:24px; margin-bottom:8px;">BINGO</div>
+  <div style="font-size:14px; opacity:0.6; margin-bottom:28px; text-align:center;">Comment voulez-vous qu'on vous appelle ?</div>
+  <input class="name-input" id="name-input" placeholder="Votre prénom" maxlength="24" />
+  <button class="primary-btn" id="btn-confirm-name" style="margin-top:16px; padding:14px 32px; width:auto;" disabled>C'est parti</button>
+</div>
+
+<!-- ===================== ÉCRAN PUBLIC ===================== -->
+<div id="public-screen" class="screen hidden">
+  <button class="back-btn" id="public-back-btn">← Changer de vue</button>
+  <div class="header-photos">
+    <img src="images/yolande.jpg" alt="" onerror="this.classList.add('missing')" />
+    <img src="images/logo.png" class="logo" alt="" onerror="this.classList.add('missing')" />
+  </div>
+  <div class="title-display" id="public-title" style="font-size:clamp(20px,5vw,32px);"></div>
+  <div class="subtitle">Suivi en direct</div>
+  <div style="font-size:12px; opacity:0.45; margin: 6px 0 16px;">
+    Vous jouez sous le nom <strong id="public-player-name" style="color: var(--gold);"></strong>
+  </div>
+
+  <div id="public-empty" style="text-align:center; opacity:0.7; font-size:18px; margin-top:40px; max-width:320px;">
+    En attente du premier tirage…<br />
+    <span style="font-size:14px; opacity:0.6;">Restez sur cette page, elle se mettra à jour seule.</span>
+  </div>
+
+  <div id="public-ball-wrap" style="display:flex; flex-direction:column; align-items:center; margin-bottom:20px;">
+    <div class="ball" id="public-ball" style="width:min(42vw,200px); height:min(42vw,200px);">
+      <span class="letter" id="public-ball-letter" style="font-size:clamp(18px,5vw,26px);"></span>
+      <span class="number" id="public-ball-number" style="font-size:clamp(44px,14vw,88px);"></span>
+    </div>
+    <div style="font-size:13px; opacity:0.55; margin-top:10px;">Dernier numéro tiré</div>
+  </div>
+
+  <div id="public-bingo-zone" style="width:100%; max-width:420px; margin-bottom:20px;">
+    <button class="bingo-btn" id="btn-send-bingo">BINGO !</button>
+    <div class="status-card pending hidden" id="status-pending">⏳ Annonce envoyée, en attente de vérification…</div>
+    <div class="status-card validated hidden" id="status-validated"></div>
+    <div class="status-card rejected hidden" id="status-rejected">Annonce non confirmée par l'animateur. La partie continue.</div>
+  </div>
+
+  <div class="bingo-grid-wrap" id="public-grid-wrap">
+    <div class="bingo-letters"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div>
+    <div class="bingo-rows" id="public-grid"></div>
+  </div>
+
+  <div style="margin-top:18px; font-size:13px; opacity:0.5;" id="public-count"></div>
+</div>
+
+<!-- ===================== PANNEAU ANIMATEUR ===================== -->
+<div id="controller-screen" class="screen hidden">
+  <button class="back-btn" id="controller-back-btn">← Changer de vue</button>
+  <div style="width:100%; max-width:480px;">
+    <div class="header-photos">
+      <img src="images/yolande.jpg" alt="" onerror="this.classList.add('missing')" />
+      <img src="images/logo.png" class="logo" alt="" onerror="this.classList.add('missing')" />
+    </div>
+    <input class="title-display" id="title-input" style="font-size:20px; width:100%; background:transparent; border:none; text-align:center; outline:none; margin-bottom:4px;" />
+    <div style="font-size:12px; opacity:0.5; text-align:center; margin-bottom:24px; letter-spacing:0.1em; text-transform:uppercase;">Panneau animateur</div>
+
+    <div style="display:flex; justify-content:center; margin-bottom:16px;">
+      <div class="ball" id="controller-ball" style="width:140px; height:140px;">
+        <span class="letter" id="controller-ball-letter" style="font-size:16px;"></span>
+        <span class="number" id="controller-ball-number" style="font-size:50px;"></span>
+        <span class="placeholder" id="controller-ball-placeholder">Aucun numéro<br/>encore choisi</span>
+      </div>
+    </div>
+
+    <div style="text-align:center; font-size:13px; opacity:0.6; margin-bottom:16px;" id="controller-count"></div>
+
+    <div id="claim-zone"></div>
+
+    <div style="display:flex; gap:10px; margin-bottom:20px;">
+      <button class="ghost-btn" id="btn-undo" style="flex:1;">Annuler le dernier</button>
+      <button class="ghost-btn" id="btn-reset" style="flex:1;">Réinit.</button>
+    </div>
+
+    <div style="font-size:11px; opacity:0.5; text-align:center; margin-bottom:10px; letter-spacing:0.05em; text-transform:uppercase;">
+      Touchez le numéro annoncé à voix haute
+    </div>
+
+    <div class="bingo-grid-wrap" style="margin-bottom:24px;">
+      <div class="bingo-letters" style="font-size:13px;"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div>
+      <div class="bingo-rows" id="controller-grid"></div>
+    </div>
+
+    <div style="text-align:center;">
+      <button id="btn-toggle-qr" style="background:transparent; border:none; color:var(--gold); font-size:13px; text-decoration:underline; margin-bottom:12px;">Masquer le QR code</button>
+      <div class="qr-box" id="qr-box"><div id="qr-canvas"></div></div>
+      <div style="margin-top:12px;">
+        <button class="ghost-btn" id="btn-copy-link" style="padding:8px 16px; font-size:12px;">Copier le lien public</button>
+      </div>
+      <div style="font-size:11px; opacity:0.45; margin-top:10px; max-width:320px; margin-left:auto; margin-right:auto;">
+        Le QR code et le lien pointent vers la vue publique de cette page.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== OVERLAY CÉLÉBRATION ===================== -->
+<div id="celebration-overlay" class="hidden">
+  <svg id="celebration-rainbow" class="rainbow-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMax slice">
+    <path d="M -50 420 A 380 380 0 0 1 850 420" fill="none" stroke="#FF4D6D" stroke-width="26" />
+    <path d="M -50 420 A 340 340 0 0 1 810 420" fill="none" stroke="#FFA94D" stroke-width="26" />
+    <path d="M -50 420 A 300 300 0 0 1 770 420" fill="none" stroke="#FFC857" stroke-width="26" />
+    <path d="M -50 420 A 260 260 0 0 1 730 420" fill="none" stroke="#7CD67C" stroke-width="26" />
+    <path d="M -50 420 A 220 220 0 0 1 690 420" fill="none" stroke="#5BB8E0" stroke-width="26" />
+    <path d="M -50 420 A 180 180 0 0 1 650 420" fill="none" stroke="#9D7CE0" stroke-width="26" />
+  </svg>
+  <div class="celebration-banner">
+    <img id="celebration-photo" class="celebration-photo hidden" alt="" />
+    <div class="celebration-title">BINGO !</div>
+    <div class="celebration-sub" id="celebration-name"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
