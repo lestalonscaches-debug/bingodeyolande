@@ -88,6 +88,21 @@
     margin-top: 4px;
   }
 
+  .winner-banner {
+    width: 100%;
+    max-width: 420px;
+    background: rgba(255,200,87,0.12);
+    border: 1px solid rgba(255,200,87,0.35);
+    border-radius: 14px;
+    padding: 10px 16px;
+    text-align: center;
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .winner-banner.hidden { display: none; }
+
   .ball {
     border-radius: 50%;
     border: 5px solid var(--cream);
@@ -399,6 +414,8 @@
   <div style="font-size:12px; opacity:0.45; margin: 6px 0 16px;">
     Vous jouez sous le nom <strong id="public-player-name" style="color: var(--gold);"></strong>
   </div>
+
+  <div id="winner-banner" class="winner-banner hidden"></div>
 
   <div id="public-empty" style="text-align:center; opacity:0.7; font-size:18px; margin-top:40px; max-width:320px;">
     En attente du premier tirage…<br />
