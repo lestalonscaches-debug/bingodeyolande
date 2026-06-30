@@ -38,75 +38,18 @@ function playTrumpetCall() {
   }
 }
 
+// Son joué sur tous les écrans publics quand un BINGO est validé (fichier fourni : sounds/victoire.mp3)
 function playBingoSaxJingle() {
   try {
-    const ctx = getAudioCtx();
-    const now = ctx.currentTime;
-
-    const playSaxNote = (freq, startTime, duration, peakGain) => {
-      const osc1 = ctx.createOscillator();
-      const osc2 = ctx.createOscillator();
-      const vibratoLFO = ctx.createOscillator();
-      const vibratoGain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-      const gain = ctx.createGain();
-
-      osc1.type = "sawtooth";
-      osc2.type = "triangle";
-      osc1.frequency.setValueAtTime(freq, startTime);
-      osc2.frequency.setValueAtTime(freq * 1.005, startTime);
-
-      vibratoLFO.frequency.setValueAtTime(5.5, startTime);
-      vibratoGain.gain.setValueAtTime(freq * 0.012, startTime);
-      vibratoLFO.connect(vibratoGain);
-      vibratoGain.connect(osc1.frequency);
-      vibratoGain.connect(osc2.frequency);
-
-      filter.type = "lowpass";
-      filter.frequency.setValueAtTime(1100, startTime);
-      filter.frequency.linearRampToValueAtTime(2200, startTime + duration * 0.4);
-      filter.frequency.linearRampToValueAtTime(1400, startTime + duration);
-      filter.Q.value = 1.2;
-
-      gain.gain.setValueAtTime(0.0001, startTime);
-      gain.gain.exponentialRampToValueAtTime(peakGain, startTime + duration * 0.18);
-      gain.gain.setValueAtTime(peakGain, startTime + duration * 0.7);
-      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
-
-      osc1.connect(filter);
-      osc2.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-
-      vibratoLFO.start(startTime);
-      osc1.start(startTime);
-      osc2.start(startTime);
-      vibratoLFO.stop(startTime + duration + 0.05);
-      osc1.stop(startTime + duration + 0.05);
-      osc2.stop(startTime + duration + 0.05);
-    };
-
-    const phrase = [
-      { f: 392.0, t: 0.0, d: 0.14, g: 0.22 },
-      { f: 440.0, t: 0.12, d: 0.14, g: 0.22 },
-      { f: 523.25, t: 0.24, d: 0.16, g: 0.24 },
-      { f: 440.0, t: 0.4, d: 0.13, g: 0.2 },
-      { f: 587.33, t: 0.53, d: 0.16, g: 0.24 },
-      { f: 659.25, t: 0.69, d: 0.16, g: 0.25 },
-      { f: 783.99, t: 0.85, d: 0.3, g: 0.27 },
-      { f: 698.46, t: 1.14, d: 0.14, g: 0.22 },
-      { f: 880.0, t: 1.28, d: 0.16, g: 0.25 },
-      { f: 987.77, t: 1.44, d: 0.16, g: 0.26 },
-      { f: 1174.66, t: 1.6, d: 0.55, g: 0.3 },
-    ];
-    phrase.forEach((n) => playSaxNote(n.f, now + n.t, n.d, n.g));
-
-    const chordStart = now + 2.05;
-    [523.25, 659.25, 783.99, 1046.5].forEach((f) => {
-      playSaxNote(f, chordStart, 0.85, 0.22);
+    const audio = new Audio("sounds/victoire.mp3");
+    audio.play().catch((err) => {
+      console.warn(
+        "Son de victoire non joué (sounds/victoire.mp3) — fichier introuvable ou aucune interaction tactile encore eue sur la page :",
+        err
+      );
     });
   } catch (e) {
-    // ignore
+    console.warn("Erreur lors de la lecture du son sounds/victoire.mp3 :", e);
   }
 }
 
@@ -165,8 +108,8 @@ document.getElementById("code-input").addEventListener("keydown", (e) => {
   if (e.key === "Enter") tryUnlock();
 });
 function tryUnlock() {
-  const val = document.getElementById("code-input").value.trim();
-  if (val === ACCESS_CODE) {
+  const val = document.getElementById("code-input").value.trim().toLowerCase();
+  if (val === ACCESS_CODE.toLowerCase()) {
     document.getElementById("code-error").style.display = "none";
     document.getElementById("code-input").value = "";
     showScreen("controller");
@@ -454,7 +397,7 @@ function triggerCelebration(name) {
   setTimeout(() => {
     overlay.classList.add("hidden");
     overlay.querySelectorAll(".confetti").forEach((el) => el.remove());
-  }, 6000);
+  }, 18500);
 }
 
 function spawnConfetti(overlay) {
