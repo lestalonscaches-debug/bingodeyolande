@@ -194,9 +194,40 @@ function buildGrid(container, drawnSet, lastBall, clickable) {
       const n = min + row;
       const isDrawn = drawnSet.has(n);
       const isLast = n === lastBall;
+      const photo = isDrawn ? casePhotoFor(n) : null;
+
       const el = document.createElement(clickable ? "button" : "div");
       el.className = "cell" + (isDrawn ? " drawn" : "") + (isLast ? " last" : "") + (clickable ? " clickable" : "");
-      el.textContent = n;
+
+      if (photo) {
+        // Case tirée avec photo : image en fond + numéro en petit par-dessus
+        el.style.backgroundImage = `url('${photo}')`;
+        el.style.backgroundSize = "cover";
+        el.style.backgroundPosition = "center";
+        el.style.position = "relative";
+        el.style.overflow = "hidden";
+        // Voile coloré semi-transparent par-dessus la photo
+        el.style.backgroundColor = isLast
+          ? "rgba(255,77,109,0.45)"
+          : "rgba(27,20,48,0.35)";
+        // Numéro en petit en bas de la case
+        const label = document.createElement("span");
+        label.textContent = n;
+        label.style.cssText = `
+          position: absolute;
+          bottom: 1px;
+          right: 3px;
+          font-size: 9px;
+          font-weight: 700;
+          color: white;
+          text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+          line-height: 1;
+        `;
+        el.appendChild(label);
+      } else {
+        el.textContent = n;
+      }
+
       if (clickable) {
         el.disabled = isDrawn;
         el.addEventListener("click", () => {
@@ -428,6 +459,28 @@ let availableCelebrationPhotos = [];
     img.src = src;
   });
 })();
+
+// Photos de cases : images/cases/case-1.jpg à case-20.jpg
+// Chaque numéro reçoit toujours la même photo (déterministe : numéro % nbPhotos)
+const CASE_PHOTO_CANDIDATES = Array.from(
+  { length: 20 },
+  (_, i) => `images/cases/case-${i + 1}.jpg`
+);
+let availableCasePhotos = [];
+(function detectCasePhotos() {
+  CASE_PHOTO_CANDIDATES.forEach((src) => {
+    const img = new Image();
+    img.onload = () => availableCasePhotos.push(src);
+    img.onerror = () => {};
+    img.src = src;
+  });
+})();
+
+// Retourne la photo à afficher pour un numéro donné (stable, pas aléatoire)
+function casePhotoFor(n) {
+  if (availableCasePhotos.length === 0) return null;
+  return availableCasePhotos[n % availableCasePhotos.length];
+}
 
 function triggerCelebration(name) {
   playBingoSaxJingle();
