@@ -140,7 +140,10 @@ document.getElementById("public-back-btn").addEventListener("click", () => showS
 document.getElementById("controller-back-btn").addEventListener("click", () => showScreen("choose"));
 
 document.getElementById("btn-send-bingo").addEventListener("click", () => {
-  if (!playerName || myClaimStatus) return;
+  const someoneElsePending = state.claims.some(
+    (c) => c.status === "pending" && c.deviceId !== deviceId && c.generation === state.generation
+  );
+  if (!playerName || myClaimStatus || someoneElsePending) return;
   send({ type: "send_bingo", name: playerName, deviceId });
   myClaimStatus = "pending";
   renderPublicBingoZone();
@@ -231,12 +234,21 @@ function renderPublicBingoZone() {
   const rejectedCard = document.getElementById("status-rejected");
   [btn, pendingCard, validatedCard, rejectedCard].forEach((el) => el.classList.add("hidden"));
 
+  // Y a-t-il une annonce pending de quelqu'un d'autre ?
+  const someoneElsePending = state.claims.some(
+    (c) => c.status === "pending" && c.deviceId !== deviceId && c.generation === state.generation
+  );
+
   if (myClaimStatus === "validated") {
     validatedCard.textContent = `🎉 Bingo validé ! Bravo ${playerName}, tu as gagné !`;
     validatedCard.classList.remove("hidden");
   } else if (myClaimStatus === "rejected") {
     rejectedCard.classList.remove("hidden");
   } else if (myClaimStatus === "pending") {
+    pendingCard.classList.remove("hidden");
+  } else if (someoneElsePending) {
+    // Quelqu'un d'autre est en cours de vérification — on bloque le bouton
+    pendingCard.textContent = "⏳ Vérification en cours… Attendez la décision de l'animateur.";
     pendingCard.classList.remove("hidden");
   } else if (state.drawn.length > 0) {
     btn.classList.remove("hidden");
