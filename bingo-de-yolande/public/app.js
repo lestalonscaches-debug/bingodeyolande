@@ -86,14 +86,38 @@ const screens = {
 function showScreen(name) {
   Object.values(screens).forEach((el) => el.classList.add("hidden"));
   screens[name].classList.remove("hidden");
+  // Mémoriser la vue active pour la restaurer au rechargement
+  // (on ne mémorise pas les écrans transitoires comme "choose", "code", "name")
+  if (name === "public" || name === "controller") {
+    sessionStorage.setItem("bingo_screen", name);
+  } else if (name === "choose") {
+    sessionStorage.removeItem("bingo_screen");
+    sessionStorage.removeItem("bingo_player_name");
+  }
 }
 
-let deviceId = "dev_" + Math.random().toString(36).slice(2) + Date.now();
+let deviceId = sessionStorage.getItem("bingo_device_id");
+if (!deviceId) {
+  deviceId = "dev_" + Math.random().toString(36).slice(2) + Date.now();
+  sessionStorage.setItem("bingo_device_id", deviceId);
+}
 let playerName = null;
 let myClaimStatus = null;
 
+// Restauration au rechargement
+const savedScreen = sessionStorage.getItem("bingo_screen");
+const savedName = sessionStorage.getItem("bingo_player_name");
 const params = new URLSearchParams(location.search);
-if (params.get("view") === "public") {
+
+if (savedScreen === "controller") {
+  // L'animateur était connecté : on restaure directement le panneau animateur
+  showScreen("controller");
+} else if (savedScreen === "public" && savedName) {
+  // Le joueur avait choisi son prénom : on restaure directement la vue publique
+  playerName = savedName;
+  document.getElementById("public-player-name").textContent = playerName;
+  showScreen("public");
+} else if (params.get("view") === "public") {
   showScreen("name");
 } else {
   showScreen("choose");
@@ -131,6 +155,7 @@ function confirmName() {
   const val = document.getElementById("name-input").value.trim();
   if (!val) return;
   playerName = val;
+  sessionStorage.setItem("bingo_player_name", playerName);
   document.getElementById("public-player-name").textContent = playerName;
   showScreen("public");
   renderPublic();
